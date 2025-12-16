@@ -44,12 +44,6 @@ export const generateInitialMatches = (players, tournamentId) => {
   const totalRounds = Math.log2(bracketSize);
   const byeCount = bracketSize - shuffledPlayers.length;
 
-  console.log('Tournament generation:', {
-    playerCount: shuffledPlayers.length,
-    bracketSize,
-    totalRounds,
-    byeCount,
-  });
 
   // Create first round matches
   const matches = [];

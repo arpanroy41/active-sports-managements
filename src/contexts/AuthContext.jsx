@@ -67,11 +67,17 @@ export const AuthProvider = ({ children }) => {
       }
       
       // Fallback: No JWT metadata, fetch from database (slower)      
-      const { data, error } = await supabase
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Profile fetch timeout')), 5000)
+      );
+      
+      const fetchPromise = supabase
         .from(TABLES.USERS)
         .select('*')
         .eq('id', userId)
         .maybeSingle();
+      
+      const { data, error } = await Promise.race([fetchPromise, timeoutPromise]);
 
       if (error) {
         console.error('Error fetching profile:', error);
@@ -121,8 +127,10 @@ export const AuthProvider = ({ children }) => {
           return;
         } else if (event === 'SIGNED_IN') {
           // Fetch profile on login
-          setLoading(true);
-          if (session?.user) {            
+          // Only set loading if we don't already have this user's profile
+          const alreadyFetched = fetchedUserIdRef.current === session?.user?.id;
+          if (!alreadyFetched && session?.user) {
+            setLoading(true);
             await fetchProfile(session.user.id, session.user);
           }
         } else if (event === 'USER_UPDATED') {
@@ -228,4 +236,3 @@ export const AuthProvider = ({ children }) => {
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
-

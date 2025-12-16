@@ -11,35 +11,41 @@ import { TrophyIcon } from '@patternfly/react-icons';
 
 // Dashboard wrapper to handle role-based routing
 const DashboardWrapper = () => {
-  const { profile } = useAuth();
+  const { isAdmin } = useAuth();
 
-  if (profile?.role === 'admin') {
-    const adminNavItems = [
-      { path: '/admin/tournaments', label: 'Tournaments', icon: <TrophyIcon /> },
+  // Define navigation items based on role (function call pattern like meal-booking)
+  const getNavItems = () => {
+    if (isAdmin) {
+      return [
+        { path: '/admin/tournaments', label: 'Tournaments', icon: <TrophyIcon /> },
+      ];
+    }
+    
+    // Player navigation
+    return [
+      { path: '/dashboard', label: 'Tournaments', icon: <TrophyIcon /> },
     ];
+  };
 
-    return (
-      <Layout navItems={adminNavItems}>
-        <AdminDashboard />
-      </Layout>
-    );
-  }
-
-  const playerNavItems = [
-    { path: '/dashboard', label: 'Tournaments', icon: <TrophyIcon /> },
-  ];
+  // Define dashboard component based on role
+  const getDashboardComponent = () => {
+    if (isAdmin) {
+      return <AdminDashboard />;
+    }
+    return <PlayerDashboard />;
+  };
 
   return (
-    <Layout navItems={playerNavItems}>
-      <PlayerDashboard />
+    <Layout navItems={getNavItems()}>
+      {getDashboardComponent()}
     </Layout>
   );
 };
 
 const App = () => {
   return (
-    <Router>
-      <AuthProvider>
+    <AuthProvider>
+      <Router>
         <Routes>
           {/* Public routes */}
           <Route path="/login" element={<LoginPage />} />
@@ -86,8 +92,8 @@ const App = () => {
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
-      </AuthProvider>
-    </Router>
+      </Router>
+    </AuthProvider>
   );
 };
 
