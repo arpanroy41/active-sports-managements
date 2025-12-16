@@ -1,0 +1,160 @@
+# Active Sports Management System - Cursor Rules
+
+## Project Overview
+A modern sports tournament management system built with React, PatternFly, and Supabase.
+
+## Tech Stack
+- **Frontend**: React 18.3.1
+- **UI Framework**: PatternFly 6.4.0+
+- **Backend**: Supabase (PostgreSQL + Auth + Real-time)
+- **Authentication**: JWT (built into Supabase)
+- **Build Tool**: Vite
+- **Hosting**: Vercel
+- **License**: MIT (Open Source)
+
+## Code Style & Standards
+
+### React
+- Use functional components with hooks
+- Use `useCallback` for memoized functions
+- Use `useRef` for preventing duplicate operations
+- Prefer named exports over default exports
+- Always handle loading and error states
+
+### PatternFly 6 Components
+- **EmptyState**: Pass `titleText`, `headingLevel`, and `icon` as props directly
+  ```jsx
+  <EmptyState titleText="Title" headingLevel="h2" icon={IconComponent}>
+  ```
+- **Modal**: Always use `ModalHeader`, `ModalBody`, `ModalFooter` structure
+  ```jsx
+  <Modal variant={ModalVariant.small} isOpen={isOpen} onClose={onClose}>
+    <ModalHeader title="Title" labelId="modal-id" />
+    <ModalBody id="modal-body">Content</ModalBody>
+    <ModalFooter>Buttons</ModalFooter>
+  </Modal>
+  ```
+- **Select**: Use `MenuToggle` and `SelectList` (no `SelectVariant`)
+  ```jsx
+  <Select
+    isOpen={isOpen}
+    onSelect={onSelect}
+    onOpenChange={setIsOpen}
+    toggle={(toggleRef) => (
+      <MenuToggle ref={toggleRef} onClick={onToggle}>
+        {selected}
+      </MenuToggle>
+    )}
+  >
+    <SelectList>
+      <SelectOption value="option">Option</SelectOption>
+    </SelectList>
+  </Select>
+  ```
+
+### Supabase Queries
+- **Always use** `.maybeSingle()` instead of `.single()` when querying for a single row
+- `.single()` throws errors if no row found
+- `.maybeSingle()` returns null gracefully
+- Always handle both `data` and `error` in responses
+
+### Authentication with JWT
+- JWT is built into Supabase - no additional packages needed
+- Check `user?.app_metadata?.role` for instant role verification
+- Fall back to database query only if JWT doesn't have role
+- Always pass `userObj` to `fetchProfile()` for JWT optimization
+
+### Database
+- Table names in `TABLES` constant from `services/supabase.js`
+- Always use Row Level Security (RLS) policies
+- JWT claims are automatically set via database triggers
+- Users must log out/in after role changes to get new JWT
+
+### File Structure
+```
+src/
+├── components/
+│   ├── admin/          # Admin-only components
+│   ├── common/         # Shared components
+│   └── tournament/     # Tournament-related components
+├── contexts/           # React contexts (Auth, etc.)
+├── pages/             # Page components
+├── services/          # API services (Supabase)
+└── utils/             # Utility functions
+```
+
+## Best Practices
+
+### Error Handling
+- Always use try-catch blocks for async operations
+- Log errors with descriptive messages
+- Provide fallback values when queries fail
+- Show user-friendly error messages in UI
+
+### Performance
+- Use JWT for fast auth checks (no DB query)
+- Prevent duplicate fetches with refs
+- Fetch full profile in background (non-blocking)
+- Use indexes for frequently queried columns
+
+### Security
+- Never expose sensitive keys in code
+- Use environment variables (`VITE_` prefix)
+- RLS policies enforce all database permissions
+- JWT signing handled by Supabase (secure)
+
+## Common Patterns
+
+### Protected Routes
+```jsx
+<Route element={<ProtectedRoute requireAdmin />}>
+  <Route path="/admin/*" element={<AdminRoutes />} />
+</Route>
+```
+
+### Auth Context Usage
+```jsx
+const { user, profile, isAdmin, isPlayer, loading } = useAuth();
+```
+
+### Supabase Queries
+```jsx
+const { data, error } = await supabase
+  .from(TABLES.USERS)
+  .select('*')
+  .eq('id', userId)
+  .maybeSingle();
+```
+
+## Important Notes
+
+### Documentation
+- **No .md files needed until asked**
+- Keep code self-documenting with clear variable names
+- Add comments only for complex logic
+
+### JWT Implementation
+- JWT role is stored in `auth.users.raw_app_meta_data`
+- Existing users need JWT claims updated via SQL
+- New users get JWT claims automatically via trigger
+
+### PatternFly Updates
+- PatternFly 6 has breaking changes from v5
+- Always check PatternFly docs for correct component usage
+- No `EmptyStateIcon`, `EmptyStateHeader`, or `SelectVariant` in v6
+
+## Testing
+- Test in browser with realistic data
+- Check console for errors and warnings
+- Verify RLS policies in Supabase dashboard
+- Test both admin and player roles
+
+## Deployment
+- Deploy to Vercel with `vercel` command
+- Set environment variables in Vercel dashboard
+- Run SQL schema in Supabase before deployment
+
+## Reference Projects
+- Meal Booking System: `/Users/arproy/Projects/meal-booking-system`
+- Follow similar patterns for auth and database structure
+
